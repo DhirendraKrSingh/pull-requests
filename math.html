@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Math Project - Basic Operations</title>
+  <style>
+    :root{--bg:#0f172a;--card:#0b1220;--accent:#7c3aed;--muted:#94a3b8;--glass: rgba(255,255,255,0.04)}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Arial,sans-serif;margin:0;background:linear-gradient(180deg,var(--bg),#081023);color:#e6eef8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px}
+    .container{width:900px;max-width:98%;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:16px;padding:24px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+    header{display:flex;align-items:center;gap:16px}
+    h1{margin:0;font-size:20px}
+    p.lead{color:var(--muted);margin:4px 0 18px}
+    .tabs{display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,0.03);padding-bottom:12px;margin-bottom:18px}
+    .tab{padding:8px 12px;border-radius:10px;cursor:pointer;background:transparent;border:1px solid transparent;color:var(--muted)}
+    .tab.active{background:var(--glass);border-color:rgba(255,255,255,0.04);color:#fff}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    .row{display:flex;gap:12px;align-items:center}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type=number]{width:140px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
+    button.primary{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;background:var(--accent);color:white}
+    .result{margin-top:12px;padding:12px;border-radius:8px;background:rgba(255,255,255,0.02);color:#dff6ff}
+    .history{margin-top:12px;max-height:160px;overflow:auto}
+    .history li{font-size:13px;color:var(--muted);padding:6px 0;border-bottom:1px dashed rgba(255,255,255,0.02)}
+    footer{margin-top:12px;color:var(--muted);font-size:13px;text-align:right}
+    @media (max-width:700px){.row{flex-direction:column;align-items:stretch}input[type=number]{width:100%}}
+  </style>
+</head>
+<body>
+  <div class="container" role="main">
+    <header>
+      <div>
+        <h1>Mathematics Project — Basic Operations</h1>
+        <p class="lead">Try add, subtract, multiply and divide with explanations. Accessible and keyboard-friendly.</p>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Math operations">
+      <button class="tab active" role="tab" aria-selected="true" data-op="add">Add</button>
+      <button class="tab" role="tab" aria-selected="false" data-op="subtract">Subtract</button>
+      <button class="tab" role="tab" aria-selected="false" data-op="multiply">Multiply</button>
+      <button class="tab" role="tab" aria-selected="false" data-op="divide">Divide</button>
+      <button class="tab" role="tab" aria-selected="false" data-op="power">Power</button>
+    </nav>
+
+    <section class="card" id="panel">
+      <div class="row">
+        <div>
+          <label for="a">Number A</label>
+          <input id="a" type="number" inputmode="numeric" step="any" value="12">
+        </div>
+        <div>
+          <label for="b">Number B</label>
+          <input id="b" type="number" inputmode="numeric" step="any" value="8">
+        </div>
+        <div style="align-self:end">
+          <button class="primary" id="compute">Compute</button>
+        </div>
+      </div>
+
+      <div class="result" id="result">Result will appear here.</div>
+
+      <details style="margin-top:12px">
+        <summary style="cursor:pointer;color:var(--muted)">Show steps / explanation</summary>
+        <div id="explain" style="margin-top:8px;color:var(--muted)">No steps yet.</div>
+      </details>
+
+      <div class="history" aria-live="polite">
+        <h4 style="margin:8px 0 6px">History</h4>
+        <ul id="historyList" style="list-style:none;padding:0;margin:0">
+        </ul>
+      </div>
+
+      <footer>
+        <small>Tip: use left/right arrows to switch tabs, enter to compute.</small>
+      </footer>
+    </section>
+
+  <script>
+    // Basic tab functionality
+    const tabs = Array.from(document.querySelectorAll('.tab'));
+    const panel = document.getElementById('panel');
+    const aEl = document.getElementById('a');
+    const bEl = document.getElementById('b');
+    const resultEl = document.getElementById('result');
+    const explainEl = document.getElementById('explain');
+    const historyList = document.getElementById('historyList');
+    let currentOp = 'add';
+
+    function setActive(tab){
+      tabs.forEach(t=>{t.classList.remove('active');t.setAttribute('aria-selected','false')});
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected','true');
+      currentOp = tab.dataset.op;
+      resultEl.textContent = 'Result will appear here.';
+      explainEl.textContent = 'No steps yet.';
+    }
+
+    tabs.forEach(t=>{
+      t.addEventListener('click', ()=> setActive(t));
+      t.addEventListener('keydown', (e)=>{
+        const idx = tabs.indexOf(t);
+        if(e.key === 'ArrowRight') tabs[(idx+1)%tabs.length].focus();
+        if(e.key === 'ArrowLeft') tabs[(idx-1+tabs.length)%tabs.length].focus();
+        if(e.key === 'Enter' || e.key === ' ') setActive(t);
+      });
+    });
+
+    function compute(){
+      const a = parseFloat(aEl.value);
+      const b = parseFloat(bEl.value);
+      if(Number.isNaN(a) || Number.isNaN(b)){
+        resultEl.textContent = 'Please enter valid numbers.';
+        explainEl.textContent = '';
+        return;
+      }
+      let res, steps;
+      switch(currentOp){
+        case 'add': res = a + b; steps = `${a} + ${b} = ${res}`; break;
+        case 'subtract': res = a - b; steps = `${a} - ${b} = ${res}`; break;
+        case 'multiply': res = a * b; steps = `${a} × ${b} = ${res}`; break;
+        case 'divide':
+          if(b === 0){ resultEl.textContent = 'Error: division by zero'; explainEl.textContent='Division by zero is undefined.'; return; }
+          res = a / b; steps = `${a} ÷ ${b} = ${res}`; break;
+        case 'power': res = Math.pow(a,b); steps = `${a} ^ ${b} = ${res}`; break;
+        default: res = '—'; steps = '';
+      }
+      resultEl.textContent = res;
+      explainEl.textContent = steps;
+      const li = document.createElement('li');
+      li.textContent = `${currentOp.toUpperCase()}: ${steps}`;
+      historyList.prepend(li);
+    }
+
+    document.getElementById('compute').addEventListener('click', compute);
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter') compute();
+    });
+
+    // initialize keyboard focus
+    tabs[0].focus();
+  </script>
+</body>
+</html>
